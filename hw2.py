@@ -14,57 +14,68 @@ def calculate_hash(plain_text, key):
 	return key.hex()
 
 # Precompute each chain
-def compute_chain(plain_text, SP, found):
-	if (found):
-		chain_length = chain_length - 1
+def compute_chain(plain_text, SP, chainlen):
 	j = 0
 	InitalSP = SP
-	chain_length = 2**8
-	while (j < chain_length):
+	#	chain_length = 2**8
+	while (j < chainlen):
 		# Generate EP from last key
 		SP = calculate_hash(plain_text, SP)
 		j = j + 1
-	dict[SP] = InitalSP
+	return InitalSP, SP
 
 # Precompute the table and return it as a dictionary
-def compute_table(plain_text, chain_length, k, bytes):
+def compute_table(plain_text, chainlen, k, bts):
 	i = 0
 	keyspace = 2**k
-	num_of_chains = keyspace/chain_length
+	num_of_chains = keyspace/chainlen
 
 	while (i < num_of_chains):
-		SP = secrets.token_hex(nbytes=bytes)
-		compute_chain(plain_text, SP, False)
+		# TODO
+		SP = secrets.token_hex(nbytes=bts)
+		SP, EP = compute_chain(plain_text, SP, chainlen)
 		i = i + 1
+		dict[EP] = SP
 	return dict
 
-# Given cipher text(y) find key that encrypted plain text
+# Given cipher text(y) find key that encrypted the plain text
 def online_attack(dict, y):
-	# check y value against EP
-	# if it matches an EP that means the key is the previous entry in the chain
-    if y in dict.keys():
-        print("Y =", dict[y])
-		# feed y as input to hash and stop one spot before the end of the chain
-		# compute_chain(plain_text, y, True)
-	# else:
-	# 	Rehash y into yprime then check
-	# 	loop this
+	# TODO
+	i = 2**8
+	while(i > 0):
+		if y in dict.keys():
+			SP, EP = compute_chain(plain_text, y, i-1)
+			return EP
+			
+		y = calculate_hash(plain_text, y)
+		i = i - 1
 
 
 if __name__ == "__main__":
 
+	# Create empty dictionary
 	dict = {}
 
 	# Case A
 	# 16 bits
 	k = 16
-	bytes = int(k/8)
-	i = 1
-	chain_length = 2**8
+	# bts = int(k/8)
+	
+	x = '1e'
+	chain_length = 2**4
 	plain_text = "Testing".encode()
-	dict = compute_table(plain_text, chain_length, k, bytes)
-	online_attack(dict, '4')
-	# print (dict)
+	dict = compute_table(plain_text, chain_length, k, 2)
+	y = calculate_hash(plain_text, x)
+	x2 = online_attack(dict, y)
+	print('y: ', y)
+	print ('x2: ', x2)
+	y2 = calculate_hash(plain_text, x2)
+
+	print ('y2: ', y2)
+	if (y == y2):
+		print('True')
+	else:
+		print('False')
 
 	# Case B
 	# 20 bits
